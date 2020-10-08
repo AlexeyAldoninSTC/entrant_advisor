@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Cities</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+<div class="container">
+    <div th:replace="~{navigation :: navigation(Citites)}"/>
+
+    <h4>Cities</h4>
+    <table class="table table-stripped">
+        <thead>
+        <tr>
+            <td>City</td>
+            <td>Show all universities</td>
+            <td>Delete city</td>
+        </tr>
+        </thead>
+
+        <tbody>
+        <tr th:each="reg : ${cities}">
+            <td th:text="${reg.cityName}"></td>
+            <td><a th:href="@{'/university/' + ${reg.id}}">Show</a></td>
+            <td><a th:href="@{'/city/delete/' + ${reg.id}}">Delete</a></td>
+        </tr>
+        </tbody>
+    </table>
+    <a th:href="@{'/city/add'}">Add city</a>
+</div>
+</body>
+
+</html>

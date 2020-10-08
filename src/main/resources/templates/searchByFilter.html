@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Ways for</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+<div class="container">
+    <div th:replace="~{navigation :: navigation(Ways)}"/>
+    <h1>Ways for</h1>
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <td>Name</td>
+            <td>Title</td>
+            <td>Faculty name</td>
+            <td>All balls</td>
+            <td>Math</td>
+            <td>Rus</td>
+            <td>Eng</td>
+            <td>Inf</td>
+            <td>Edit</td>
+            <td>Delete</td>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="prod : ${universities}">
+            <!--            <td th:text="${prod.id}"></td>-->
+            <td th:text="${prod.name}"></td>
+            <td th:text="${prod.title}"></td>
+            <td th:text="${prod.faculty.name}"></td>
+            <td th:text="${prod.balls}"></td>
+            <td th:text="${prod.math}"></td>
+            <td th:text="${prod.rus}"></td>
+            <td th:text="${prod.eng}"></td>
+            <td th:text="${prod.inf}"></td>
+        </tr>
+        </tbody>
+    </table>
+    <a th:href="@{/search}" type="button" class="btn btn-warning">Сброс фильтра</a>
+</div>
+</body>
+
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <title>Filter</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+<div class="container">
+    <div th:replace="~{navigation :: navigation(Filter)}"/>
+
+    <h2>Filter</h2>
+
+    <form th:action="@{'/search/filter'}" method="get">
+
+        <div class="arrows-on-left-horizontal">
+            <div class="form-group col-md-6">
+                <label>Math</label>
+                <input type="number" th:value="${param.math != null ? param.math : ''}"
+                       class="form-control form-control-sm" name="math">
+            </div>
+
+            <div class="form-group col-md-6">
+                <label>Rus</label>
+                <input type="number" th:value="${param.rus != null ? param.rus : ''}"
+                       class="form-control form-control-sm" name="rus">
+            </div>
+
+            <div class="form-group col-md-6">
+                <label>Eng</label>
+                <input type="number" th:value="${param.eng != null ? param.eng : '0'}"
+                       class="form-control form-control-sm" name="eng">
+            </div>
+
+            <div class="form-group col-md-6">
+                <label>Inf</label>
+                <input type="number" th:value="${param.inf != null ? param.inf : '0'}"
+                       class="form-control form-control-sm" name="inf">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Категории</label>
+            <div class="form-check" th:each="c : ${@cityService.getAll()}">
+                <input type="checkbox" class="form-check-input" name="cityName" th:value="${c.id}">
+                <label class="form-check-label" th:text="${c.cityName}"></label>
+                <!--                <span th:text="${param.categories}"/>-->
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Мне повезет!</button>
+    </form>
+</div>
+</body>
+</html>
