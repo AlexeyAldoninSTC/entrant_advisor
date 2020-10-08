@@ -12,10 +12,17 @@
 
 <body>
 <h4>Добавить новый faculty</h4>
+<div class="container">
+    <form th:action="@{'/faculty/' + ${universityID} + '/add'}" method="POST">
+        <table class="table table-striped">
+            <tr>
+                <td>Введите название</td>
+                <td><input type="text" name="facultyName"/></td>
+                <input type="submit"/>
+            </tr>
+        </table>
+    </form>
+</div>
 
-<form th:action="@{'/faculty/' + ${universityID} + '/add'}" method="POST">
-    <input type="text" name="facultyName" placeholder="Введите название"/>
-    <input type="submit"/>
-</form>
 </body>
 </html>

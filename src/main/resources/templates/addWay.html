@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <title>Добавить новый way</title>
+    <title>Добавить новое направление</title>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
@@ -10,17 +10,50 @@
 </head>
 
 <body>
-<h4>Добавить новый way</h4>
+<h4>Добавить новое направление</h4>
 
-<form th:action="@{'/way/' + ${facultyId} + '/add'}" method="POST">
-    <input type="text" name="name" placeholder="Введите название"/>
-    <input type="text" name="title" placeholder="Введите title"/>
-    <input type="number" value="0" name="balls" placeholder="Введите min All balls"/>
-    <input type="number" value="0" name="math" placeholder="Введите min math balls"/>
-    <input type="number" value="0" name="rus" placeholder="Введите min rus balls"/>
-    <input type="number" value="0" name="eng" placeholder="Введите min eng balls"/>
-    <input type="number" value="0" name="inf" placeholder="Введите min inf balls"/>
-    <input type="submit"/>
-</form>
+<div class="container">
+    <form th:action="@{'/way/' + ${facultyId} + '/add'}" method="POST">
+        <table class="table table-striped" >
+            <tr>
+                <td>Введите название направления</td>
+                <td><input type="text" name="name" /></td>
+            </tr>
+
+            <tr>
+                <td>Введите описание</td>
+                <td><input type="text" name="title" /></td>
+            </tr>
+
+            <tr>
+                <td>Введите минимальное количество баллов для бюджета</td>
+                <td><input type="number" value="0" name="balls" /></td>
+            </tr>
+
+            <tr>
+                <td>Введите минимальное количество баллов по математике</td>
+                <td><input type="number" value="0" name="math" /></td>
+            </tr>
+
+            <tr>
+                <td>Введите минимальное количество баллов по русскому языку</td>
+                <td><input type="number" value="0" name="rus" /></td>
+            </tr>
+
+            <tr>
+                <td>Введите минимальное количество баллов по английскому языку</td>
+                <td><input type="number" value="0" name="eng" /></td>
+            </tr>
+
+            <tr>
+                <td>Введите минимальное количество баллов по информатике</td>
+                <td><input type="number" value="0" name="inf" /></td>
+            </tr>
+
+        </table>
+        <input type="submit"/>
+    </form>
+</div>
+
 </body>
 </html>
