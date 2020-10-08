@@ -2,6 +2,7 @@ package com.example.demo.entities;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sun.istack.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,12 +22,14 @@ public class Way {
     private Long id;
 
     @Column(name = "NAME")
+    @NotNull
     private String name;
 
     @Column(name = "TITLE")
     private String title;
 
     @Column(name = "BALLS")
+    @NotNull
     private int balls;
 
     @Column(name = "MATH")

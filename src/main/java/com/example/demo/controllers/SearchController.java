@@ -32,7 +32,7 @@ public class SearchController {
 
     @GetMapping("/filter")
     public String showSearched(@RequestParam Map<String, String> requestParams,
-                               @RequestParam(name = "cityName", required = false) List<Long> citiesId,
+                               @RequestParam(name = "cityId", required = false) List<Long> citiesId,
                                Model model) {
         SearchFilter searchFilter = new SearchFilter(requestParams, citiesId);
         Specification<Way> spec = searchFilter.getSpecification();

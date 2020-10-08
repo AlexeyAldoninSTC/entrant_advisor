@@ -1,10 +1,10 @@
 package com.example.demo.utils;
 
 import com.example.demo.entities.Way;
-import com.example.demo.services.WayService;
 import com.example.demo.services.specifications.WaySpec;
 import lombok.Getter;
 import org.springframework.data.jpa.domain.Specification;
+
 import java.util.List;
 import java.util.Map;
 
@@ -21,26 +21,38 @@ public class SearchFilter {
         String rus = requestParams.get("rus");
         String eng = requestParams.get("eng");
         String inf = requestParams.get("inf");
+        String budget = requestParams.get("budget");
         int allBalls = 0;
 
         if (math != null) {
-            allBalls += Integer.parseInt(math);
+            int mathBall = Integer.parseInt(math);
+            specification = specification.and(WaySpec.greaterThenMath(mathBall));
+            allBalls += mathBall;
         }
 
         if (rus != null) {
-            allBalls += Integer.parseInt(rus);
+            int rusBall = Integer.parseInt(rus);
+            specification = specification.and(WaySpec.greaterThenRus(rusBall));
+            allBalls += rusBall;
         }
 
         if (eng != null) {
-            allBalls += Integer.parseInt(eng);
+            int engBall = Integer.parseInt(eng);
+            specification = specification.and(WaySpec.greaterThenEng(engBall));
+            allBalls += engBall;
         }
 
         if (inf != null) {
-            allBalls += Integer.parseInt(inf);
+            int infBall = Integer.parseInt(inf);
+            specification = specification.and(WaySpec.greaterThenInf(infBall));
+            allBalls += infBall;
         }
 
-        specification = specification.and(WaySpec.greaterThen(allBalls));
-
-
+        if (citiesId != null && !citiesId.isEmpty()){
+            citiesId.forEach(id -> specification = specification.and(WaySpec.equalsCity(id)));
+        }
+        if (budget != null){
+            specification = specification.and(WaySpec.greaterThenAllBalls(allBalls));
+        }
     }
 }
