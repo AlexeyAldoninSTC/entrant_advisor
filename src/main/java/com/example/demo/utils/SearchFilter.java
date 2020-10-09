@@ -49,7 +49,10 @@ public class SearchFilter {
         }
 
         if (citiesId != null && !citiesId.isEmpty()){
-            citiesId.forEach(id -> specification = specification.and(WaySpec.equalsCity(id)));
+            final Specification<Way>[] specificationForCity = new Specification[]{Specification.where(null)};
+            citiesId.forEach(id ->
+                    specificationForCity[0] = specificationForCity[0].or(WaySpec.equalsCity(id)));
+            specification = specification.and(specificationForCity[0]);
         }
         if (budget != null){
             specification = specification.and(WaySpec.greaterThenAllBalls(allBalls));

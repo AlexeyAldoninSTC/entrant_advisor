@@ -18,7 +18,8 @@
         <tr>
             <td>Name</td>
             <td>Title</td>
-            <td>Faculty name</td>
+            <td>University name</td>
+            <td>City name</td>
             <td>All balls</td>
             <td>Math</td>
             <td>Rus</td>
@@ -33,7 +34,8 @@
             <!--            <td th:text="${prod.id}"></td>-->
             <td th:text="${prod.name}"></td>
             <td th:text="${prod.title}"></td>
-            <td th:text="${prod.faculty.name}"></td>
+            <td th:text="${prod.faculty.university.name}"></td>
+            <td th:text="${prod.faculty.university.city.cityName}"></td>
             <td th:text="${prod.balls}"></td>
             <td th:text="${prod.math}"></td>
             <td th:text="${prod.rus}"></td>
