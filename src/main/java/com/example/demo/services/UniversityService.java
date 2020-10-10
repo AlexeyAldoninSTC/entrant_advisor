@@ -5,7 +5,6 @@ import com.example.demo.entities.University;
 import com.example.demo.repositories.UniversityRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service

@@ -4,7 +4,6 @@ import com.example.demo.entities.Way;
 import com.example.demo.services.specifications.WaySpec;
 import lombok.Getter;
 import org.springframework.data.jpa.domain.Specification;
-
 import java.util.List;
 import java.util.Map;
 
