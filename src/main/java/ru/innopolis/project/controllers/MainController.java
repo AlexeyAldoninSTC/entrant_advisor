@@ -13,23 +13,21 @@ public class MainController {
     /**
      * При post запросе по пути /app парсим все это в объект DAOEntity
      * уже из него берем нужные поля features и rules.
-     * {
-     * "rules" : [ "mos", "kaz"],
+     *  {"rules" : [ "mos", "kaz"],
      * "features" : {"math":"20",
-     * "rus":"30"}
-     * }
+     * "rus":"30"}}
      */
     @PostMapping("/app")
     public ResponseEntity<?> get(@RequestBody DAOEntity entity) {
-
-
         ServiceLogic serviceLogic;
+
+//        serviceLogic.execute(entity.getRules(), entity.getFeatures());
 
         System.out.println("Math features : " + entity.getFeatures().getMath());
         System.out.println("Rus features : " + entity.getFeatures().getRus());
 
-        for (String rule : entity.getAllRules()) {
-            System.out.println("Rule : " + rule);
+        for (String rule : entity.getRules()) {
+            System.out.println(rule);
         }
 
         return ResponseEntity.ok().build();
