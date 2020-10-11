@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import ru.innopolis.project.entity.pojo.DAOEntity;
+import ru.innopolis.project.entity.pojo.JSONMessage;
 import ru.innopolis.project.service.ServiceLogic;
 
 import java.util.Map;
@@ -28,7 +28,8 @@ public class MainController {
      * "rus":"30"}}
      */
     @PostMapping("/api")
-    public ResponseEntity<?> get(@RequestBody DAOEntity entity) {
+    public ResponseEntity<?> get(@RequestBody JSONMessage entity) {
+
         Map<String, Boolean> execute = serviceLogic.execute(entity.getRules(), entity.getFeatures());
         return ResponseEntity.ok(execute);
     }

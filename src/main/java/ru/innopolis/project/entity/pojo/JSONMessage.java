@@ -5,15 +5,17 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DAOEntity {
+public class JSONMessage {
 
     @JsonProperty("rules")
     private String[] rules;
 
     @JsonProperty(value = "features")
-    private Features features;
+    private Map<String, Integer> features;
 
 }

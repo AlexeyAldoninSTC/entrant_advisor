@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.innopolis.project.entity.Condition;
 import ru.innopolis.project.entity.Rule;
-import ru.innopolis.project.entity.pojo.Features;
 import ru.innopolis.project.repositories.ConditionRepository;
 import ru.innopolis.project.repositories.RulesRepository;
 
@@ -24,7 +23,7 @@ public class ServiceLogicImpl implements ServiceLogic {
     }
 
     @Override
-    public Map<String, Boolean> execute(String[] rules, Features features) {
+    public Map<String, Boolean> execute(String[] rules, Map<String, Integer> features) {
         HashMap<String, Boolean> hashMap = new HashMap<>();
 
         for (String ruleName : rules) {
@@ -40,7 +39,7 @@ public class ServiceLogicImpl implements ServiceLogic {
         return hashMap;
     }
 
-    private boolean checkByOneRule(Features features, Long ruleId) {
+    private boolean checkByOneRule(Map<String, Integer> features, Long ruleId) {
         for (Condition k : conditionRepository.findAllByRulesId(ruleId)) {
             if (!checkOneRow(k, features)) {
                 return false;
@@ -49,8 +48,8 @@ public class ServiceLogicImpl implements ServiceLogic {
         return true;
     }
 
-    private boolean checkOneRow(Condition condition, Features feature) {
-        Integer s = feature.getMap().get(condition.getFeatureName());
+    private boolean checkOneRow(Condition condition, Map<String, Integer> feature) {
+        Integer s = feature.get(condition.getFeatureName());
         String operation = condition.getOperation();
 
         if (s == null) {
