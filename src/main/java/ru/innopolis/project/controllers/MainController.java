@@ -1,35 +1,35 @@
 package ru.innopolis.project.controllers;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import ru.innopolis.project.entity.DAOEntity;
+import ru.innopolis.project.entity.pojo.DAOEntity;
 import ru.innopolis.project.service.ServiceLogic;
+
+import java.util.Map;
 
 @RestController
 public class MainController {
 
+    private final ServiceLogic serviceLogic;
+
+    @Autowired
+    public MainController(ServiceLogic serviceLogic) {
+        this.serviceLogic = serviceLogic;
+    }
+
     /**
-     * При post запросе по пути /app парсим все это в объект DAOEntity
+     * При post запросе по пути /api парсим все это в объект DAOEntity
      * уже из него берем нужные поля features и rules.
      *  {"rules" : [ "mos", "kaz"],
      * "features" : {"math":"20",
      * "rus":"30"}}
      */
-    @PostMapping("/app")
+    @PostMapping("/api")
     public ResponseEntity<?> get(@RequestBody DAOEntity entity) {
-        ServiceLogic serviceLogic;
-
-//        serviceLogic.execute(entity.getRules(), entity.getFeatures());
-
-        System.out.println("Math features : " + entity.getFeatures().getMath());
-        System.out.println("Rus features : " + entity.getFeatures().getRus());
-
-        for (String rule : entity.getRules()) {
-            System.out.println(rule);
-        }
-
-        return ResponseEntity.ok().build();
+        Map<String, Boolean> execute = serviceLogic.execute(entity.getRules(), entity.getFeatures());
+        return ResponseEntity.ok(execute);
     }
 }

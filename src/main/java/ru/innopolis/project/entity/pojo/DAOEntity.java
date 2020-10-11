@@ -1,4 +1,4 @@
-package ru.innopolis.project.entity;
+package ru.innopolis.project.entity.pojo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
