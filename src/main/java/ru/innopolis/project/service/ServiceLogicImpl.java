@@ -13,8 +13,8 @@ import java.util.Map;
 @Service
 public class ServiceLogicImpl implements ServiceLogic {
 
-    private ConditionRepository conditionRepository;
-    private RulesRepository rulesRepository;
+    private final ConditionRepository conditionRepository;
+    private final RulesRepository rulesRepository;
 
     @Autowired
     public ServiceLogicImpl(ConditionRepository conditionRepository, RulesRepository rulesRepository) {

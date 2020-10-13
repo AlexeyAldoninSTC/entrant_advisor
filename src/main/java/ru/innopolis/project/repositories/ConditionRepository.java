@@ -8,4 +8,6 @@ import java.util.List;
 public interface ConditionRepository extends JpaRepository<Condition, Long> {
 
     List<Condition> findAllByRulesId(Long id);
+    List<Condition> getAllByRuleId(Long id);
+
 }
