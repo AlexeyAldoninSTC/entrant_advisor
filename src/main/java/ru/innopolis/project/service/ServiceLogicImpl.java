@@ -40,7 +40,7 @@ public class ServiceLogicImpl implements ServiceLogic {
     }
 
     private boolean checkByOneRule(Map<String, Integer> features, Long ruleId) {
-        for (Condition k : conditionRepository.findAllByRulesId(ruleId)) {
+        for (Condition k : conditionRepository.findAllByRuleId(ruleId)) {
             if (!checkOneRow(k, features)) {
                 return false;
             }
@@ -50,13 +50,12 @@ public class ServiceLogicImpl implements ServiceLogic {
 
     private boolean checkOneRow(Condition condition, Map<String, Integer> feature) {
         Integer s = feature.get(condition.getFeatureName());
-        String operation = condition.getOperation();
 
         if (s == null) {
             return false;
         }
 
-        switch (operation) {
+        switch (condition.getOperation()) {
             case ">":
                 return s > condition.getValue();
             case "<":
