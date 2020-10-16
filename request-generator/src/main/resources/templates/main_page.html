@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<form th:action="@{/server/start}" method="post" class="font-menu-button">
+
+    <div class="input-group">
+        <div class="input-group-prepend">
+            <span class="input-group-text">Request count</span>
+        </div>
+        <input type="number" name="count" placeholder="Please enter request count">
+    </div>
+
+    <div class="input-group">
+        <div class="input-group-prepend">
+            <span class="input-group-text">Thread count</span>
+        </div>
+        <input type="number"
+               name="thread_count" placeholder="Please enter thread count for response">
+    </div>
+
+    <div class="input-group">
+        <div class="input-group-prepend">
+            <span class="input-group-text">Url</span>
+        </div>
+        <input type="text"
+               name="url" placeholder="Please enter url for request">
+    </div>
+
+    <button type="submit" class="btn btn-primary">click</button>
+
+</form>
+
+</body>
+
