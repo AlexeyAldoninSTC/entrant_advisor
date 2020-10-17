@@ -16,6 +16,6 @@ public class JSONMessage {
     private String[] rules;
 
     @JsonProperty("features")
-    private Map<String, Integer> features;
+    private Map<String, Object> features;
 
 }
