@@ -1,54 +1,52 @@
 package ru.innopolis.project.InMemoryDB;
 
+import org.springframework.stereotype.Component;
+import ru.innopolis.project.entity.Car;
+
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
-public class InMemoryDataBase<K,V> implements Repository<K,V>{
-    private final Map<K,V> dataBase;
+@Component
+public class InMemoryDataBase implements Repository<String, Car>{
+    private final Map<String, Car> dataBase;
 
-    public InMemoryDataBase(){
-        dataBase=new HashMap<>();
+    public InMemoryDataBase() {
+        dataBase = new HashMap<>();
     }
 
 
-    private boolean isEmpty(String key){
+    private boolean isEmpty(String key) {
         return key == null || key.isEmpty();
     }
 
 
-    @Override
-    public boolean save(K key, V value) {
-        dataBase.put(key, value);
+    public boolean save(String carNumber, Car value) {
+        dataBase.put(carNumber, value);
         return true;
     }
 
-    @Override
-    public boolean update(K key, V value) {
-        dataBase.put(key, value);
+    public boolean update(String carNumber, Car value) {
+        dataBase.put(carNumber, value);
         return true;
     }
 
-    @Override
-    public boolean delete(K key) {
-        if (dataBase.containsKey(key)){
-            dataBase.remove(key);
+    public boolean delete(String carNumber) {
+        if (dataBase.containsKey(carNumber)) {
+            dataBase.remove(carNumber);
             return true;
         }
         return false;
     }
 
-    @Override
-    public V get(K key) {
-        if (dataBase.containsKey(key)){
-            return dataBase.get(key);
+    public Car get(String carNumber) {
+        if (dataBase.containsKey(carNumber)) {
+            return dataBase.get(carNumber);
         }
         throw new IllegalArgumentException("No key in DB");
     }
 
-    @Override
-    public boolean containsKey(K key) {
-        return dataBase.containsKey(key);
+    public boolean containsKey(String carNumber) {
+        return dataBase.containsKey(carNumber);
     }
 
 }
