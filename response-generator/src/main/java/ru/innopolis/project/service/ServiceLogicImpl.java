@@ -1,5 +1,10 @@
 package ru.innopolis.project.service;
 
+import org.apache.ignite.Ignite;
+import org.apache.ignite.IgniteCache;
+import org.apache.ignite.Ignition;
+import org.apache.ignite.configuration.DataStorageConfiguration;
+import org.apache.ignite.configuration.IgniteConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.innopolis.project.InMemoryDB.InMemoryDataBase;
@@ -9,7 +14,8 @@ import ru.innopolis.project.entity.Rule;
 import ru.innopolis.project.repositories.ConditionRepository;
 import ru.innopolis.project.repositories.RulesRepository;
 
-import java.util.Date;
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,6 +25,7 @@ public class ServiceLogicImpl implements ServiceLogic {
     protected final ConditionRepository conditionRepository;
     protected final RulesRepository rulesRepository;
     private final InMemoryDataBase inMemoryDataBase;
+    private final IgniteCache<?, ?> igniteCache = getIgnite().getOrCreateCache("testCash");
 
 
     @Autowired
@@ -88,13 +95,18 @@ public class ServiceLogicImpl implements ServiceLogic {
 
         if (condition.getFeatureName().equals("in")) {
             if (!inMemoryDataBase.containsKey(carNumber)) {
-                inMemoryDataBase.save(carNumber, new Car(new Date(), false));
+                inMemoryDataBase.save(carNumber, new Car(LocalTime.parse((CharSequence) features.get("time")), false));
                 return true;
             } else {
                 return false;
             }
         } else if (condition.getFeatureName().equals("out")) {
-            if (inMemoryDataBase.containsKey(carNumber)) {
+            if (inMemoryDataBase.containsKey(carNumber)) {                // если ключ(Гос. номер содержится в базе, заходим в цикл
+                LocalTime departureTime = LocalTime.parse((CharSequence) features.get("time"));
+                LocalTime arrivalTime = inMemoryDataBase.get(carNumber).getDate();
+                if (Duration.between(arrivalTime, departureTime).toMinutes() < condition.getValue()) {
+                    inMemoryDataBase.get(carNumber).setPay(true);
+                }
                 if (!inMemoryDataBase.get(carNumber).isPay()) {
                     if (checkOneRow(condition, features)) {
                         inMemoryDataBase.delete(carNumber);
@@ -103,7 +115,7 @@ public class ServiceLogicImpl implements ServiceLogic {
                 }
                 inMemoryDataBase.delete(carNumber);
                 return true;
-            } else {
+            } else {                                                    //если номера нет, то как ты тут оказался?!
                 return false;
             }
         } else if (condition.getFeatureName().equals("pay")) {
@@ -111,5 +123,15 @@ public class ServiceLogicImpl implements ServiceLogic {
             return true;
         }
         throw new IllegalArgumentException("I don't know what is it =\\");
+    }
+
+    private Ignite getIgnite() {
+        IgniteConfiguration configuration = new IgniteConfiguration();
+        DataStorageConfiguration dataStorageConfiguration = new DataStorageConfiguration();
+        dataStorageConfiguration.getDefaultDataRegionConfiguration().setPersistenceEnabled(false);
+        configuration.setDataStorageConfiguration(dataStorageConfiguration);
+
+        Ignite ignite = Ignition.start(configuration);
+        return ignite;
     }
 }
