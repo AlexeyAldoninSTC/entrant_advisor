@@ -1,6 +1,7 @@
 package ru.innopolis.server.generator;
 
-import lombok.Getter;
+import lombok.Data;
+import lombok.ToString;
 import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -9,15 +10,14 @@ import org.springframework.http.MediaType;
 import org.springframework.web.client.RestTemplate;
 import ru.innopolis.server.config.RequestConfig;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-@Getter
+@Data
+@ToString
 public class RequestGenerator {
     private final RestTemplate restTemplate;
     private final RequestConfig requestConfig;
@@ -26,6 +26,9 @@ public class RequestGenerator {
     private final JSONObject jsonObject;
     private final int threadCount;
     private final int requestCount;
+    private final List<String> rules;
+    private JSONObject features;
+
 
     /**
      * При создании нашего генератора запросов, передаем ему все параметры.
@@ -44,8 +47,10 @@ public class RequestGenerator {
         jsonObject = requestConfig.getJsonObject();
         requestCount = requestConfig.getCount();
         threadCount = requestConfig.getThreadCount();
+        rules = requestConfig.getRules();
         restTemplate = new RestTemplate();
         httpHeaders = new HttpHeaders();
+        features = new JSONObject();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
     }
 
@@ -58,15 +63,18 @@ public class RequestGenerator {
      * @return
      * @throws InterruptedException
      */
-    public List<HashMap<String, Boolean>> generate() throws InterruptedException {
-        testRequest();
-        List<HashMap<String, Boolean>> responses = new ArrayList<>();
+    public Map<String, HashMap<String, Boolean>> generate() throws InterruptedException {
+//        testRequest();
+        Map<String, HashMap<String, Boolean>> responses = new ConcurrentHashMap<>();
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+
         for (int i = 0; i < requestCount; i++) {
             executorService.execute(() -> {
-                jsonObject.put("features", generateFeatures());
-                HttpEntity<String> jsonObjectHttpEntity = new HttpEntity<>(jsonObject.toString(), httpHeaders);
-                responses.add(restTemplate.exchange(url, HttpMethod.POST, jsonObjectHttpEntity, HashMap.class).getBody());
+                JSONObject features = generateFeatures();
+                jsonObject.put("features", features);
+                String json = jsonObject.toString();
+                HttpEntity<String> jsonObjectHttpEntity = new HttpEntity<>(json, httpHeaders);
+                responses.put(features.toString(), restTemplate.exchange(url, HttpMethod.POST, jsonObjectHttpEntity, HashMap.class).getBody());
             });
         }
 
@@ -78,15 +86,21 @@ public class RequestGenerator {
     /**
      * Метод для генерации случайных чисел в запросах.
      *
-     * @return jsonObject с features : math и rus;
+     * @return jsonObject с features :
      */
     private JSONObject generateFeatures() {
-        JSONObject featureObjects = new JSONObject();
-        int random = (int) (Math.random() * 100);
-        featureObjects.put("math", random);
-        random = (int) (Math.random() * 100);
-        featureObjects.put("rus", random);
-        return featureObjects;
+
+        if (rules.contains("in") || rules.contains("out") || rules.contains("pay")) {
+            features = requestConfig.getFeatures();
+        } else {
+            rules.forEach(k -> {
+                if (!k.isEmpty()) {
+                    features.put(k, new Random().nextInt(100));
+                }
+            });
+        }
+
+        return features;
     }
 
     /**
@@ -96,9 +110,7 @@ public class RequestGenerator {
     private void testRequest() {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        restTemplate.exchange(url, HttpMethod.POST, new HttpEntity<String>(
-                "{\"rules\" : [ \"mos\", \"kaz\"],\n" +
-                "      \"features\" : {\"math\":\"20\",\n" +
-                "      \"rus\":\"30\"}}", headers), HashMap.class).getBody();
+        restTemplate.exchange(url, HttpMethod.POST, new HttpEntity<>(
+                "{\"rules\" : [], \"features\" : {} }", headers), HashMap.class).getBody();
     }
 }
