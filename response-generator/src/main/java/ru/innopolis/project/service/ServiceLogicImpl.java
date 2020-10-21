@@ -6,6 +6,7 @@ import org.apache.ignite.Ignition;
 import org.apache.ignite.configuration.DataStorageConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import ru.innopolis.project.InMemoryDB.InMemoryDataBase;
 import ru.innopolis.project.entity.Car;
@@ -22,18 +23,18 @@ import java.util.Map;
 
 @Service
 public class ServiceLogicImpl implements ServiceLogic {
-//    Ignite ignite = Ignition.start();
+    //        Ignite ignite = Ignition.start();
     protected final ConditionRepository conditionRepository;
     protected final RulesRepository rulesRepository;
-//    private final InMemoryDataBase inMemoryDataBase;
     private final IgniteCache<String, Car> igniteCache = getIgnite().getOrCreateCache("testCash");
+//    private final IgniteCache<String,Integer> arrivalCount = ignite .getOrCreateCache ("counter");
+//    private int counter = 0;
 
 
     @Autowired
     public ServiceLogicImpl(ConditionRepository conditionRepository, RulesRepository rulesRepository) {
         this.conditionRepository = conditionRepository;
         this.rulesRepository = rulesRepository;
-//        this.inMemoryDataBase = inMemoryDataBase;
     }
 
     @Override
@@ -95,44 +96,36 @@ public class ServiceLogicImpl implements ServiceLogic {
         }
 
         switch (condition.getFeatureName()) {
-            case "in":                                                                                                         //в случае in
-                if (!igniteCache.containsKey(carNumber)) {                                                                     //если в мапе нет текущего гос номера(ключа)
-                    igniteCache.put(carNumber, new Car(LocalTime.parse((CharSequence) features.get("time")), false));     //помещаем в мапу гос номер(ключ) и сам авто( поля в нем время заезда и флаг оплаты на false)
-                    printIgnite(igniteCache);                                                                                  //просто проверка того, что в мапу что-то записалось
-                    return true;                                                                                               //вернуть тру
-                } else {                                                                                                       //если номера нет,то
-                    System.out.println(igniteCache + " : " + (igniteCache.size()));                                            //(тут самопроверка)
-                    return false;                                                                                              //вернуть фолс
+            case "in":
+                if (!igniteCache.containsKey(carNumber)) {
+                    igniteCache.put(carNumber, new Car(LocalTime.parse((CharSequence) features.get("time")), false));
+                    return true;
+                } else {
+                    return false;
                 }
-            case "out":                                                                                                         //в случае out
-                if (igniteCache.containsKey(carNumber)) {                                                                       //если в мапе содержится такой ключ,то заходим в условие
-                    LocalTime departureTime = LocalTime.parse((CharSequence) features.get("time"));                             //получаем время выезда (парсим входной json)
-                    LocalTime arrivalTime = igniteCache.get(carNumber).getDate();                                               //получаем время въезда
-                    if (Duration.between(arrivalTime, departureTime).toMinutes() < condition.getValue()) {                      //получаем фактическое время остановки, и проверяем меньше ли оно бесплатного периода(в нашем случае 5 минут)
-                        igniteCache.get(carNumber).setPay(true);                                                                //если да,то устанавливаем флаг оплаты на тру и выпускаем машину
-                        igniteCache.remove(carNumber);                                                                          //удаляем из кэша
-                        System.out.println(igniteCache + " : " + (igniteCache.size()));                                         //самопроверка
-                        return true;                                                                                            //т.к. время простоя меньше 5 минут, то выдаем тру и отпускаем машину
+            case "out":
+                if (igniteCache.containsKey(carNumber)) {
+                    LocalTime departureTime = LocalTime.parse((CharSequence) features.get("time"));
+                    LocalTime arrivalTime = igniteCache.get(carNumber).getDate();
+                    long time = Duration.between(arrivalTime, departureTime).toMinutes();
+                    if (time < 10) {
+                        igniteCache.get(carNumber).setPay(true);
+                        igniteCache.remove(carNumber);
+                        return true;
+                    } else if ((igniteCache.get(carNumber).isPay())){
+                        return true;
+                    }else {
+                        return false;
                     }
-                    if (!igniteCache.get(carNumber).isPay()) {                                                                  //если текущая машина оплатила стоянку(т.е. !false (по русски true) , т.к. в момент создания авто у нас флаг в fasle
-                                                                                                                                //не заходит! проверить!
-                            igniteCache.remove(carNumber);                                                                      //удаляем машину из кэша
-                            System.out.println(igniteCache + " : " + (igniteCache.size()));                                     //самопроверка
-                            return true;                                                                                        //возвращаем тру
-                                                                                                                              //возвращаем фолс (это если машина не оплатила стоянку и пытается выехать)
-                    }
-                    igniteCache.remove(carNumber);                                                                              //повтор кода по идее мы сюда даже не доберемся
-                    System.out.println(igniteCache + " : " + (igniteCache.size()));                                             //самопроверка
-                    return true;                                                                                                //возврат тру
-                } else {                                                                                                        //если номера нет, то как ты тут оказался?!
-                    System.out.println(igniteCache + " : " + (igniteCache.size()));                                             //самопроверка
-                    return false;                                                                                               //т.к. номера нет, то возврат фолс
+
+//                    }
+                } else {
+                    return false;
 
                 }
-            case "pay":                                                                                                         //в случае pay
-                igniteCache.get(carNumber).setPay(true);                                                                        //устанавливаем у текущей машины флаг оплаты в тру
-                System.out.println(igniteCache + " : " + (igniteCache.size()));                                                 //самопроверка
-                return true;                                                                                                    //возвращаем тру
+            case "pay":
+                igniteCache.get(carNumber).setPay(true);
+                return true;
         }
         throw new IllegalArgumentException("I don't know what is it =\\");
     }
@@ -146,7 +139,7 @@ public class ServiceLogicImpl implements ServiceLogic {
         return Ignition.start(configuration);
     }
 
-    public void printIgnite(IgniteCache<String,Car> igniteCache){                                                               //перебор нашей мапы,
+    public void printIgnite(IgniteCache<String, Car> igniteCache) {                                                               //перебор нашей мапы,
         for (Cache.Entry<String, Car> k : igniteCache) {                                                                        //Apache ignite по факту та же мапа.
             System.out.println(k.getKey() + " |--| " + k.getValue());
         }
