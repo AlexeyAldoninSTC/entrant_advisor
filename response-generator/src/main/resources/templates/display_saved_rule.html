@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Saved Rule</title>
+</head>
+<body>
+<!--/*@thymesVar id="rule" type="ru.innopolis.project.entity.Rule"*/-->
+
+<table th:object="${rule}">
+    <thead th:text="New Rule ${rule.name} ${rule.id}">Features</thead>
+    <tbody>
+    <tr>
+        <th>Condition ID</th>
+        <th>Feature Name</th>
+        <th>Comparison Type</th>
+        <th>Basic Value</th>
+    </tr>
+    <tr th:each="condition: ${rule.conditions}">
+        <td th:text="${condition.id}"></td>
+        <td th:text="${condition.featureName}"> </td>
+        <td th:text="${condition.operation}"></td>
+        <td th:text="${condition.value}"></td>
+    </tr>
+    </tbody>
+</table>
+
+</body>
+</html>
