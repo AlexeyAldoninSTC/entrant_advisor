@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Create New Rule</title>
+</head>
+<body>
+
+<form id="newRuleCreationForm" method="post">
+    <!--/*@thymesVar id="rule" type="ru.innopolis.project.entity.Rule"*/-->
+    <input type="text" id="ruleName" name="ruleName" placeholder="New Rule Name" th:value="${rule.name}">
+    <label for="ruleName">New Rule Name</label><br>
+    <button type="submit">Save Name</button>
+</form>
+<!--/*@thymesVar id="rule" type="ru.innopolis.project.entity.Rule"*/-->
+<form id="conditionsForm" method="post" th:object="${rule}">
+    <table>
+        <thead>Features</thead>
+        <tbody>
+        <tr>
+            <th>Condition ID</th>
+            <th>Feature Name</th>
+            <th>Comparison Type</th>
+            <th>Basic Value</th>
+        </tr>
+        <tr th:each="condition: ${rule.conditions}">
+            <td>
+                <input type="text" id="conditionId" th:name="${condition.id}" readonly>
+            </td>
+            <td>
+                <input type="text" id="featureName" name="featureName" th:name="${condition.featureName}"
+                       placeholder="Feature Name" required>
+            </td>
+            <td>
+                <input type="text" id="operation" name="operation" th:name="${condition.operation}"
+                       placeholder="Operation" required>
+            </td>
+            <td>
+                <input type="text" id="basicValue" name="value" th:name="${condition.value}"
+                       placeholder="Basic Value" required>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <button type="submit" name="action" value="addCondition">Add another Condition</button><br>
+    <button type="submit" name="action" value="saveRule">Save</button>
+</form>
+
+</body>
+</html>
