@@ -23,19 +23,14 @@ public class RequestGenerator {
     private final RequestConfig requestConfig;
     private final String url;
     private final HttpHeaders httpHeaders;
-    private final JSONObject jsonObject;
-    private final int threadCount;
-    private final int requestCount;
-    private final List<String> rules;
-    private JSONObject features;
+    private JSONObject jsonObject;
 
 
     /**
      * При создании нашего генератора запросов, передаем ему все параметры.
-     * С помощью параметров мы создаем объект reqestConfig, который содержит
+     * С помощью параметров мы создаем объект requestConfig, который содержит
      * логику обработки параметров. Потом из него достаем все параметры:
      * url - URL - куда будем отправлять post запросы,
-     * jsonObject в котором уже лежат rules,
      * threadCount - количество потоков которые будут генерировать запросы,
      * requestCount - количество запросов общее которое нужно выполнить
      *
@@ -44,37 +39,34 @@ public class RequestGenerator {
     public RequestGenerator(Map<String, String> params) {
         requestConfig = new RequestConfig(params);
         url = requestConfig.getUrl();
-        jsonObject = requestConfig.getJsonObject();
-        requestCount = requestConfig.getCount();
-        threadCount = requestConfig.getThreadCount();
-        rules = requestConfig.getRules();
         restTemplate = new RestTemplate();
         httpHeaders = new HttpHeaders();
-        features = new JSONObject();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
     }
 
     /**
      * Основной метод нашего класса, для генерации запросов по заданному url.
      * Url приходит в параметрах от класса RequestConfig.
+     * threadCount, requestCount приходят из requestConfig.
+     * JsonObject сформированный приходит так же из requestConfig.
      * В самом начале метода вызывается метод testRequest(), если нет подключения к серверу
      * тогда мы не будем пытаться создать многопоточную версию запросов.
      *
      * @return
      * @throws InterruptedException
      */
+    @SuppressWarnings("unchecked")
     public Map<String, HashMap<String, Boolean>> generate() throws InterruptedException {
-//        testRequest();
+        testRequest();
         Map<String, HashMap<String, Boolean>> responses = new ConcurrentHashMap<>();
-        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
 
-        for (int i = 0; i < requestCount; i++) {
+        ExecutorService executorService = Executors.newFixedThreadPool(requestConfig.getThreadCount());
+        for (int i = 0; i < requestConfig.getCount(); i++) {
             executorService.execute(() -> {
-                JSONObject features = generateFeatures();
-                jsonObject.put("features", features);
-                String json = jsonObject.toString();
-                HttpEntity<String> jsonObjectHttpEntity = new HttpEntity<>(json, httpHeaders);
-                responses.put(features.toString(), restTemplate.exchange(url, HttpMethod.POST, jsonObjectHttpEntity, HashMap.class).getBody());
+                jsonObject = requestConfig.getJsonObject();
+                HttpEntity<String> jsonObjectHttpEntity = new HttpEntity<>(jsonObject.toString(), httpHeaders);
+                responses.put(jsonObject.get("features").toString(),
+                        restTemplate.exchange(url, HttpMethod.POST, jsonObjectHttpEntity, HashMap.class).getBody());
             });
         }
 
@@ -83,25 +75,6 @@ public class RequestGenerator {
         return responses;
     }
 
-    /**
-     * Метод для генерации случайных чисел в запросах.
-     *
-     * @return jsonObject с features :
-     */
-    private JSONObject generateFeatures() {
-
-        if (rules.contains("in") || rules.contains("out") || rules.contains("pay")) {
-            features = requestConfig.getFeatures();
-        } else {
-            rules.forEach(k -> {
-                if (!k.isEmpty()) {
-                    features.put(k, new Random().nextInt(100));
-                }
-            });
-        }
-
-        return features;
-    }
 
     /**
      * Метод для тестового запроса к url, если подключения нет, тогда сразу падаем с ошибкой,
@@ -111,6 +84,6 @@ public class RequestGenerator {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         restTemplate.exchange(url, HttpMethod.POST, new HttpEntity<>(
-                "{\"rules\" : [], \"features\" : {} }", headers), HashMap.class).getBody();
+                "{\"rules\" : [], \"features\" : {} }", headers), HashMap.class);
     }
 }
