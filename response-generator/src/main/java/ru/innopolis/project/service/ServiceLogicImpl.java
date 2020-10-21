@@ -83,6 +83,10 @@ public class ServiceLogicImpl implements ServiceLogic {
                 return s < condition.getValue();
             case "=":
                 return s.equals(condition.getValue());
+            case ">=":
+                return s >= condition.getValue();
+            case "<=":
+                return s <= condition.getValue();
         }
 
         return false;
@@ -101,7 +105,7 @@ public class ServiceLogicImpl implements ServiceLogic {
                     igniteCache.put(carNumber, new Car(LocalTime.parse((CharSequence) features.get("time")), false));
                     if (arrivalCount.containsKey(carNumber)) {
                         arrivalCount.put(carNumber, arrivalCount.get(carNumber) + 1);
-                        return arrivalCount.get(carNumber) < 3;
+                        return arrivalCount.get(carNumber) < condition.getValue();
                     } else {
                         arrivalCount.put(carNumber, 1);
                     }
@@ -114,24 +118,17 @@ public class ServiceLogicImpl implements ServiceLogic {
                     LocalTime departureTime = LocalTime.parse((CharSequence) features.get("time"));
                     LocalTime arrivalTime = igniteCache.get(carNumber).getDate();
                     long time = Duration.between(arrivalTime, departureTime).toMinutes();
-                    if (time < 10) {
-                        igniteCache.get(carNumber).setPay(true);
+                    if (time < condition.getValue() || igniteCache.get(carNumber).isPay()) {
                         igniteCache.remove(carNumber);
                         return true;
-                    } else if ((igniteCache.get(carNumber).isPay())) {
-                        igniteCache.remove(carNumber);
-                        return true;
-                    } else {
-                        return false;
-                    }
+                    } else return igniteCache.get(carNumber).isPay();
 
-//                    }
                 } else {
                     return false;
 
                 }
             case "pay":
-                igniteCache.get(carNumber).setPay(true);
+                igniteCache.getAndReplace(carNumber, new Car(igniteCache.get(carNumber).getDate(), true));
                 return true;
         }
         throw new IllegalArgumentException("I don't know what is it =\\");
