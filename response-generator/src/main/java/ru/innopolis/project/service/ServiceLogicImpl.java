@@ -23,11 +23,11 @@ import java.util.Map;
 
 @Service
 public class ServiceLogicImpl implements ServiceLogic {
-    //        Ignite ignite = Ignition.start();
+    Ignite ignite = Ignition.start();
     protected final ConditionRepository conditionRepository;
     protected final RulesRepository rulesRepository;
-    private final IgniteCache<String, Car> igniteCache = getIgnite().getOrCreateCache("testCash");
-//    private final IgniteCache<String,Integer> arrivalCount = ignite .getOrCreateCache ("counter");
+    private final IgniteCache<String, Car> igniteCache = ignite.getOrCreateCache("testCash");
+    private final IgniteCache<String, Integer> arrivalCount = ignite.getOrCreateCache("counter");
 //    private int counter = 0;
 
 
@@ -99,6 +99,12 @@ public class ServiceLogicImpl implements ServiceLogic {
             case "in":
                 if (!igniteCache.containsKey(carNumber)) {
                     igniteCache.put(carNumber, new Car(LocalTime.parse((CharSequence) features.get("time")), false));
+                    if (arrivalCount.containsKey(carNumber)) {
+                        arrivalCount.put(carNumber, arrivalCount.get(carNumber) + 1);
+                        return arrivalCount.get(carNumber) < 3;
+                    } else {
+                        arrivalCount.put(carNumber, 1);
+                    }
                     return true;
                 } else {
                     return false;
@@ -112,9 +118,10 @@ public class ServiceLogicImpl implements ServiceLogic {
                         igniteCache.get(carNumber).setPay(true);
                         igniteCache.remove(carNumber);
                         return true;
-                    } else if ((igniteCache.get(carNumber).isPay())){
+                    } else if ((igniteCache.get(carNumber).isPay())) {
+                        igniteCache.remove(carNumber);
                         return true;
-                    }else {
+                    } else {
                         return false;
                     }
 
