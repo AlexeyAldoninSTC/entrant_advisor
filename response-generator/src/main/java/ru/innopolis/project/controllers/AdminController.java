@@ -64,7 +64,6 @@ public class AdminController {
     @PostMapping(value = "/add_condition", params = "action=saveRule")
     public String saveNewRule(@ModelAttribute Rule rule, Model model) {
         Rule cached = tempRuleCache.get(rule.getName());
-        cached.getConditions().forEach(condition -> condition.setRule(cached));
         rulesRepository.save(cached);
         model.addAttribute("rule", cached);
         tempRuleCache.remove(cached.getName());

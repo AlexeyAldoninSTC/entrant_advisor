@@ -7,10 +7,9 @@
     <title>Saved Rule</title>
 </head>
 <body>
-<!--/*@thymesVar id="rule" type="ru.innopolis.project.entity.Rule"*/-->
-
 <table th:object="${rule}">
-    <thead th:text="New Rule ${rule.name} ${rule.id}">Features</thead>
+    <thead th:text="'New Rule Name: ' + ${rule.name}"></thead>
+    <thead th:text="'New Rule ID: ' + ${rule.id}"></thead>
     <tbody>
     <tr>
         <th>Condition ID</th>
