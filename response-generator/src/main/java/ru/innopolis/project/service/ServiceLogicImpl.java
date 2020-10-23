@@ -6,9 +6,7 @@ import org.apache.ignite.Ignition;
 import org.apache.ignite.configuration.DataStorageConfiguration;
 import org.apache.ignite.configuration.IgniteConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
-import ru.innopolis.project.InMemoryDB.InMemoryDataBase;
 import ru.innopolis.project.entity.Car;
 import ru.innopolis.project.entity.Condition;
 import ru.innopolis.project.entity.Rule;
@@ -23,12 +21,12 @@ import java.util.Map;
 
 @Service
 public class ServiceLogicImpl implements ServiceLogic {
-    Ignite ignite = Ignition.start();
+    protected  Ignite ignite = ignite();
+
     protected final ConditionRepository conditionRepository;
     protected final RulesRepository rulesRepository;
     private final IgniteCache<String, Car> igniteCache = ignite.getOrCreateCache("testCash");
     private final IgniteCache<String, Integer> arrivalCount = ignite.getOrCreateCache("counter");
-//    private int counter = 0;
 
 
     @Autowired
@@ -134,13 +132,17 @@ public class ServiceLogicImpl implements ServiceLogic {
         throw new IllegalArgumentException("I don't know what is it =\\");
     }
 
-    private Ignite getIgnite() {                                                                                              //странный участок кода, без которого в первый раз ничего не запускалось
-        IgniteConfiguration configuration = new IgniteConfiguration();                                                        //а теперь спокойно работает без него
-        DataStorageConfiguration dataStorageConfiguration = new DataStorageConfiguration();
-        dataStorageConfiguration.getDefaultDataRegionConfiguration().setPersistenceEnabled(false);
-        configuration.setDataStorageConfiguration(dataStorageConfiguration);
 
-        return Ignition.start(configuration);
+
+    public Ignite ignite() {
+        IgniteConfiguration cfg = new IgniteConfiguration();
+        DataStorageConfiguration storageCfg = new DataStorageConfiguration();
+        storageCfg.getDefaultDataRegionConfiguration().setPersistenceEnabled(true);
+        storageCfg.setStoragePath("C:\\Ivan\\Projects\\entrant_advisor\\testIgnite");
+        cfg.setDataStorageConfiguration(storageCfg);
+        Ignite ignite = Ignition.start(cfg);
+        ignite.cluster().active(true);
+        return ignite;
     }
 
     public void printIgnite(IgniteCache<String, Car> igniteCache) {                                                               //перебор нашей мапы,
