@@ -1,31 +1,38 @@
 package ru.innopolis.project.service;
 
+import org.apache.ignite.Ignite;
+import org.apache.ignite.IgniteCache;
+import org.apache.ignite.Ignition;
+import org.apache.ignite.configuration.DataStorageConfiguration;
+import org.apache.ignite.configuration.IgniteConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.innopolis.project.InMemoryDB.InMemoryDataBase;
 import ru.innopolis.project.entity.Car;
 import ru.innopolis.project.entity.Condition;
 import ru.innopolis.project.entity.Rule;
 import ru.innopolis.project.repositories.ConditionRepository;
 import ru.innopolis.project.repositories.RulesRepository;
 
-import java.util.Date;
+import javax.cache.Cache;
+import java.time.Duration;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
 public class ServiceLogicImpl implements ServiceLogic {
+    protected  Ignite ignite = ignite();
 
     protected final ConditionRepository conditionRepository;
     protected final RulesRepository rulesRepository;
-    private final InMemoryDataBase inMemoryDataBase;
+    private final IgniteCache<String, Car> igniteCache = ignite.getOrCreateCache("testCash");
+    private final IgniteCache<String, Integer> arrivalCount = ignite.getOrCreateCache("counter");
 
 
     @Autowired
-    public ServiceLogicImpl(ConditionRepository conditionRepository, RulesRepository rulesRepository, InMemoryDataBase inMemoryDataBase) {
+    public ServiceLogicImpl(ConditionRepository conditionRepository, RulesRepository rulesRepository) {
         this.conditionRepository = conditionRepository;
         this.rulesRepository = rulesRepository;
-        this.inMemoryDataBase = inMemoryDataBase;
     }
 
     @Override
@@ -74,6 +81,10 @@ public class ServiceLogicImpl implements ServiceLogic {
                 return s < condition.getValue();
             case "=":
                 return s.equals(condition.getValue());
+            case ">=":
+                return s >= condition.getValue();
+            case "<=":
+                return s <= condition.getValue();
         }
 
         return false;
@@ -86,30 +97,57 @@ public class ServiceLogicImpl implements ServiceLogic {
             throw new RuntimeException("Not car number");
         }
 
-        if (condition.getFeatureName().equals("in")) {
-            if (!inMemoryDataBase.containsKey(carNumber)) {
-                inMemoryDataBase.save(carNumber, new Car(new Date(), false));
-                return true;
-            } else {
-                return false;
-            }
-        } else if (condition.getFeatureName().equals("out")) {
-            if (inMemoryDataBase.containsKey(carNumber)) {
-                if (!inMemoryDataBase.get(carNumber).isPay()) {
-                    if (checkOneRow(condition, features)) {
-                        inMemoryDataBase.delete(carNumber);
-                        return true;
-                    } else return false;
+        switch (condition.getFeatureName()) {
+            case "in":
+                if (!igniteCache.containsKey(carNumber)) {
+                    igniteCache.put(carNumber, new Car(LocalTime.parse((CharSequence) features.get("time")), false));
+                    if (arrivalCount.containsKey(carNumber)) {
+                        arrivalCount.put(carNumber, arrivalCount.get(carNumber) + 1);
+                        return arrivalCount.get(carNumber) < condition.getValue();
+                    } else {
+                        arrivalCount.put(carNumber, 1);
+                    }
+                    return true;
+                } else {
+                    return false;
                 }
-                inMemoryDataBase.delete(carNumber);
+            case "out":
+                if (igniteCache.containsKey(carNumber)) {
+                    LocalTime departureTime = LocalTime.parse((CharSequence) features.get("time"));
+                    LocalTime arrivalTime = igniteCache.get(carNumber).getDate();
+                    long time = Duration.between(arrivalTime, departureTime).toMinutes();
+                    if (time < condition.getValue() || igniteCache.get(carNumber).isPay()) {
+                        igniteCache.remove(carNumber);
+                        return true;
+                    } else return igniteCache.get(carNumber).isPay();
+
+                } else {
+                    return false;
+
+                }
+            case "pay":
+                igniteCache.getAndReplace(carNumber, new Car(igniteCache.get(carNumber).getDate(), true));
                 return true;
-            } else {
-                return false;
-            }
-        } else if (condition.getFeatureName().equals("pay")) {
-            inMemoryDataBase.get(carNumber).setPay(true);
-            return true;
         }
         throw new IllegalArgumentException("I don't know what is it =\\");
+    }
+
+
+
+    public Ignite ignite() {
+        IgniteConfiguration cfg = new IgniteConfiguration();
+        DataStorageConfiguration storageCfg = new DataStorageConfiguration();
+        storageCfg.getDefaultDataRegionConfiguration().setPersistenceEnabled(true);
+        storageCfg.setStoragePath("C:\\Ivan\\Projects\\entrant_advisor\\testIgnite");
+        cfg.setDataStorageConfiguration(storageCfg);
+        Ignite ignite = Ignition.start(cfg);
+        ignite.cluster().active(true);
+        return ignite;
+    }
+
+    public void printIgnite(IgniteCache<String, Car> igniteCache) {                                                               //перебор нашей мапы,
+        for (Cache.Entry<String, Car> k : igniteCache) {                                                                        //Apache ignite по факту та же мапа.
+            System.out.println(k.getKey() + " |--| " + k.getValue());
+        }
     }
 }
