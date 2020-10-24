@@ -8,13 +8,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import ru.innopolis.project.entity.Condition;
 import ru.innopolis.project.entity.Rule;
+import ru.innopolis.project.repositories.ConditionRepository;
 import ru.innopolis.project.repositories.RulesRepository;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Log4j2
 @Controller
@@ -22,17 +26,18 @@ import java.util.Map;
 public class AdminController {
 
     private final RulesRepository rulesRepository;
-    private static Map<String, Rule> tempRuleCache = new HashMap<>();
+    private final ConditionRepository conditionRepository;
+    private static final Map<String, Rule> TEMP_CONTROLLER_CACHE = new HashMap<>();
 
     @Autowired
-    public AdminController(RulesRepository rulesRepository) {
-        log.info("AdminController Constructor");
+    public AdminController(RulesRepository rulesRepository, ConditionRepository conditionRepository) {
+        this.conditionRepository = conditionRepository;
         this.rulesRepository = rulesRepository;
     }
 
     @GetMapping("/enter_name")
     public String getName() {
-        return "enter_rule_name";
+        return "create_rule_name";
     }
 
     @PostMapping("/init_rule")
@@ -40,21 +45,20 @@ public class AdminController {
         Rule rule = new Rule();
         rule.setName(name);
         rule.setConditions(new HashSet<>());
-        tempRuleCache.put(name, rule);
+        TEMP_CONTROLLER_CACHE.put(name, rule);
         model.addAttribute("rule", rule);
         model.addAttribute("newCondition", new Condition());
         return "create_new_rule";
     }
 
-    @GetMapping("/fill_rule")
-    public String createForm(Model model){
-        model.asMap();
-        return "create_new_rule";
+    @GetMapping("")
+    public String createForm(){
+        return "admin_main";
     }
 
     @PostMapping(value = "/add_condition", params = "action=addCondition")
     public String addCondition(Model model, Rule rule, Condition newCondition) {
-        Rule cached = tempRuleCache.get(rule.getName());
+        Rule cached = TEMP_CONTROLLER_CACHE.get(rule.getName());
         cached.getConditions().add(newCondition);
         model.addAttribute("rule", cached);
         model.addAttribute("newCondition", new Condition());
@@ -63,10 +67,52 @@ public class AdminController {
 
     @PostMapping(value = "/add_condition", params = "action=saveRule")
     public String saveNewRule(@ModelAttribute Rule rule, Model model) {
-        Rule cached = tempRuleCache.get(rule.getName());
+        Rule cached = TEMP_CONTROLLER_CACHE.get(rule.getName());
+        cached.getConditions().forEach(condition -> condition.setRule(cached));
         rulesRepository.save(cached);
         model.addAttribute("rule", cached);
-        tempRuleCache.remove(cached.getName());
+        TEMP_CONTROLLER_CACHE.remove(cached.getName());
         return "display_saved_rule";
+    }
+
+    @GetMapping("/rules")
+    public String getAllRules(Model model) {
+        List<Rule> rules = rulesRepository.findAll();
+        model.addAttribute("rules", rules);
+        return "all_rules";
+    }
+
+    @GetMapping(value = "/rules/details")
+    public String getRuleDetailsById(Long id, Model model) {
+        Optional<Rule> optionalRule = rulesRepository.findById(id);
+        Rule rule = optionalRule.orElse(new Rule());
+        model.addAttribute("rule", rule);
+        return "rule_details";
+    }
+
+    /*@GetMapping(value = "/rules/details")
+    public String getRuleDetailsByName(@RequestParam(value = "name") String name, Model model) {
+        Rule rule = rulesRepository.findByName(name);
+        model.addAttribute("rule", rule);
+        return "rule_details";
+    }*/
+
+    @GetMapping(value = "/condition")
+    public String conditionDetails(@RequestParam("id") Long id, Model model){
+        Optional<Condition> optionalCondition = conditionRepository.findById(id);
+        Condition condition = optionalCondition.orElse(new Condition());
+        model.addAttribute("condition", condition);
+        return "condition_update";
+    }
+
+    @GetMapping(value = "/delete_condition", params = "id")
+    public String deleteCondition(@RequestParam("id") Long id, Model model){
+        Optional<Condition> optionalCondition = conditionRepository.findById(id);
+        Condition condition = optionalCondition.orElse(new Condition());
+        Rule rule = condition.getRule();
+        rule.getConditions().remove(condition);
+        rulesRepository.save(rule);
+        model.addAttribute("rule", rule);
+        return "rule_details";
     }
 }
