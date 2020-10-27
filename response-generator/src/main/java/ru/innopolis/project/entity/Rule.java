@@ -30,7 +30,7 @@ public class Rule {
     @Column(name = "name")
     private String name;
 
-    @OneToMany(mappedBy = "rule", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "rule", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<Condition> conditions;
 
     @Override

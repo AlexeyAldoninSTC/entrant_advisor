@@ -21,6 +21,11 @@ public class RuleServiceImpl implements RuleService {
 
     @Override
     public Rule getByName(String ruleName) {
-        return igniteCache.getAndPutIfAbsent(ruleName, rulesRepository.findByName(ruleName));
+        if (igniteCache.containsKey(ruleName)) {
+            return igniteCache.get(ruleName);
+        }
+        Rule rule = rulesRepository.findByName(ruleName);
+        igniteCache.put(ruleName, rule);
+        return rule;
     }
 }
