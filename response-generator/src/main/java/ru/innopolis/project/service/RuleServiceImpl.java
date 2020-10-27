@@ -28,4 +28,8 @@ public class RuleServiceImpl implements RuleService {
         igniteCache.put(ruleName, rule);
         return rule;
     }
+
+    public void saveRule(Rule rule){
+        igniteCache.put(rule.getName(), rulesRepository.save(rule));
+    }
 }
