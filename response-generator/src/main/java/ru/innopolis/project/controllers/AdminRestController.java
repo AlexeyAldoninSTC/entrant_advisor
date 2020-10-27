@@ -8,8 +8,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.innopolis.project.entity.Rule;
 import ru.innopolis.project.repositories.RulesRepository;
+import springfox.documentation.annotations.ApiIgnore;
 
 @RestController(value = "/api/admin")
+@ApiIgnore
 public class AdminRestController {
 
     private final RulesRepository rulesRepository;
