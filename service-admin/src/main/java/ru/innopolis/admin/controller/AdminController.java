@@ -1,4 +1,4 @@
-package ru.innopolis.project.controllers;
+package ru.innopolis.admin.controller;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,24 +13,29 @@ import ru.innopolis.project.entity.Condition;
 import ru.innopolis.project.entity.Rule;
 import ru.innopolis.project.repositories.ConditionRepository;
 import ru.innopolis.project.repositories.RulesRepository;
+import ru.innopolis.project.service.RuleService;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
 
 @Log4j2
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
 
+    private final RuleService ruleService;
     private final RulesRepository rulesRepository;
     private final ConditionRepository conditionRepository;
     private static final Map<String, Rule> TEMP_CONTROLLER_CACHE = new HashMap<>();
 
     @Autowired
-    public AdminController(RulesRepository rulesRepository, ConditionRepository conditionRepository) {
+    public AdminController(RuleService ruleService, RulesRepository rulesRepository, ConditionRepository conditionRepository) {
+        this.ruleService = ruleService;
         this.conditionRepository = conditionRepository;
         this.rulesRepository = rulesRepository;
     }
@@ -42,6 +47,12 @@ public class AdminController {
 
     @PostMapping("/init_rule")
     public String createRuleWithName(String name, Model model) {
+        Rule byName = ruleService.getByName(name);
+        if (byName != null) {
+            model.addAttribute("rule", byName);
+            return "rule_details";
+
+        }
         Rule rule = new Rule();
         rule.setName(name);
         rule.setConditions(new HashSet<>());
@@ -66,8 +77,9 @@ public class AdminController {
     }
 
     @PostMapping(value = "/add_condition", params = "action=saveRule")
-    public String saveNewRule(@ModelAttribute Rule rule, Model model) {
+    public String saveNewRule(@ModelAttribute Rule rule, Model model, Condition newCondition) {
         Rule cached = TEMP_CONTROLLER_CACHE.get(rule.getName());
+        cached.getConditions().add(newCondition);
         cached.getConditions().forEach(condition -> condition.setRule(cached));
         rulesRepository.save(cached);
         model.addAttribute("rule", cached);
@@ -83,19 +95,11 @@ public class AdminController {
     }
 
     @GetMapping(value = "/rules/details")
-    public String getRuleDetailsById(Long id, Model model) {
-        Optional<Rule> optionalRule = rulesRepository.findById(id);
-        Rule rule = optionalRule.orElse(new Rule());
+    public String getRuleDetailsById(String name, Model model) {
+        Rule rule = ruleService.getByName(name);
         model.addAttribute("rule", rule);
         return "rule_details";
     }
-
-    /*@GetMapping(value = "/rules/details")
-    public String getRuleDetailsByName(@RequestParam(value = "name") String name, Model model) {
-        Rule rule = rulesRepository.findByName(name);
-        model.addAttribute("rule", rule);
-        return "rule_details";
-    }*/
 
     @GetMapping(value = "/condition")
     public String conditionDetails(@RequestParam("id") Long id, Model model){
@@ -105,14 +109,42 @@ public class AdminController {
         return "condition_update";
     }
 
-    @GetMapping(value = "/delete_condition", params = "id")
-    public String deleteCondition(@RequestParam("id") Long id, Model model){
-        Optional<Condition> optionalCondition = conditionRepository.findById(id);
-        Condition condition = optionalCondition.orElse(new Condition());
-        Rule rule = condition.getRule();
-        rule.getConditions().remove(condition);
-        rulesRepository.save(rule);
+    @PostMapping(value = "/delete_condition")
+    public String deleteCondition(String name, Model model, Condition condition){
+        Rule rule = ruleService.getByName(name);
+        Iterator<Condition> iterator = rule.getConditions().iterator();
+        while (iterator.hasNext()){
+            if (iterator.next().getId().equals(condition.getId())) {
+                iterator.remove();
+                break;
+            }
+        }
+        ruleService.save(rule);
         model.addAttribute("rule", rule);
         return "rule_details";
     }
+
+    @PostMapping("delete_rule")
+    public String deleteRule(String name) {
+        Rule rule = ruleService.getByName(name);
+        ruleService.delete(rule);
+        return "redirect:/admin/rules";
+    }
+
+    @PostMapping("/update_condition")
+    public String updateCondition(String name, Condition condition, Model model) {
+        Rule rule = ruleService.getByName(name);
+        Iterator<Condition> iterator = rule.getConditions().iterator();
+        while (iterator.hasNext()){
+            if (iterator.next().getId().equals(condition.getId())) {
+                iterator.remove();
+                break;
+            }
+        }
+        condition.setRule(rule);
+        rule.getConditions().add(condition);
+        model.addAttribute("rule", ruleService.save(rule));
+        return "rule_details";
+    }
+
 }

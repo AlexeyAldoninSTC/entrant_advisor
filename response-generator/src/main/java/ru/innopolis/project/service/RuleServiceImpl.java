@@ -25,11 +25,21 @@ public class RuleServiceImpl implements RuleService {
             return igniteCache.get(ruleName);
         }
         Rule rule = rulesRepository.findByName(ruleName);
-        igniteCache.put(ruleName, rule);
+        if (rule != null) {
+            igniteCache.put(ruleName, rule);
+        }
         return rule;
     }
 
-    public void saveRule(Rule rule){
+    @Override
+    public Rule save(Rule rule){
         igniteCache.put(rule.getName(), rulesRepository.save(rule));
+        return rule;
+    }
+
+    @Override
+    public void delete(Rule rule) {
+        rulesRepository.delete(rule);
+        igniteCache.remove(rule.getName());
     }
 }

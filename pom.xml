@@ -8,6 +8,7 @@
     <modules>
         <module>request-generator</module>
         <module>response-generator</module>
+        <module>service-admin</module>
     </modules>
 
     <parent>
