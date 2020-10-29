@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.innopolis.project.entity.Rule;
 import ru.innopolis.project.repositories.RulesRepository;
 
+import java.util.List;
+
 @Service
 @Transactional
 public class RuleServiceImpl implements RuleService {
@@ -42,4 +44,10 @@ public class RuleServiceImpl implements RuleService {
         rulesRepository.delete(rule);
         igniteCache.remove(rule.getName());
     }
+
+    @Override
+    public List<Rule> getAll() {
+        return rulesRepository.findAll();
+    }
+
 }

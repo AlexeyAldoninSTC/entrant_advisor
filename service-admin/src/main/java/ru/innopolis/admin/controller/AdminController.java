@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import ru.innopolis.project.entity.Condition;
 import ru.innopolis.project.entity.Rule;
 import ru.innopolis.project.repositories.ConditionRepository;
-import ru.innopolis.project.repositories.RulesRepository;
 import ru.innopolis.project.service.RuleService;
 
 import java.util.HashMap;
@@ -28,15 +27,13 @@ import java.util.Optional;
 public class AdminController {
 
     private final RuleService ruleService;
-    private final RulesRepository rulesRepository;
     private final ConditionRepository conditionRepository;
     private static final Map<String, Rule> TEMP_CONTROLLER_CACHE = new HashMap<>();
 
     @Autowired
-    public AdminController(RuleService ruleService, RulesRepository rulesRepository, ConditionRepository conditionRepository) {
+    public AdminController(RuleService ruleService, ConditionRepository conditionRepository) {
         this.ruleService = ruleService;
         this.conditionRepository = conditionRepository;
-        this.rulesRepository = rulesRepository;
     }
 
     @GetMapping("/enter_name")
@@ -103,7 +100,7 @@ public class AdminController {
             return "create_new_rule";
         }
         cached.getConditions().forEach(condition -> condition.setRule(cached));
-        rulesRepository.save(cached);
+        ruleService.save(cached);
         model.addAttribute("rule", cached);
         TEMP_CONTROLLER_CACHE.remove(cached.getName());
         return "display_saved_rule";
@@ -111,7 +108,7 @@ public class AdminController {
 
     @GetMapping("/rules")
     public String getAllRules(Model model) {
-        List<Rule> rules = rulesRepository.findAll();
+        List<Rule> rules = ruleService.getAll();
         model.addAttribute("rules", rules);
         return "all_rules";
     }
