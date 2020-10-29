@@ -48,12 +48,14 @@
                 <td>
                     <form th:action="@{/admin/condition}" method="get">
                         <input hidden name="id" th:value="${condition.id}">
+                        <input hidden name="name" th:value="${condition.rule.name}">
                         <input class="btn btn-primary" type="submit" value="Modify"/>
                     </form>
                 </td>
                 <td>
                     <form action="/admin/delete_condition" method="post">
                         <input hidden name="id" th:value="${condition.id}">
+                        <input hidden name="name" th:value="${condition.rule.name}">
                         <input class="btn btn-danger" type="submit" value="Delete"/>
                     </form>
                 </td>
