@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-
 @Log4j2
 @Controller
 @RequestMapping("/admin")
@@ -91,15 +90,16 @@ public class AdminController {
     @PostMapping(value = "/add_condition", params = "action=saveRule")
     public String saveNewRule(@ModelAttribute Rule rule, Model model, Condition newCondition) {
         Rule cached = TEMP_CONTROLLER_CACHE.get(rule.getName());
-        if (newCondition.getFeatureName() == null
-                || newCondition.getOperation() == null
-                || newCondition.getValue() == null) {
+        if (newCondition.getFeatureName() != null
+                && newCondition.getOperation() != null
+                && newCondition.getValue() != null) {
             cached.getConditions().add(newCondition);
         }
         if (cached.getConditions().isEmpty()) {
             String message = "At least 1 condition is required for a new Rule";
             model.addAttribute("message", message);
             model.addAttribute("rule", cached);
+            model.addAttribute("newCondition", new Condition());
             return "create_new_rule";
         }
         cached.getConditions().forEach(condition -> condition.setRule(cached));
