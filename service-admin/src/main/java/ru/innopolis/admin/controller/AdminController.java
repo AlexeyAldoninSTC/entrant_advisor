@@ -47,11 +47,15 @@ public class AdminController {
 
     @PostMapping("/init_rule")
     public String createRuleWithName(String name, Model model) {
+        if (name == null) {
+            return "redirect:/admin/enter_name";
+        }
         Rule byName = ruleService.getByName(name);
         if (byName != null) {
             model.addAttribute("rule", byName);
-            return "rule_details";
-
+            String message = "Rule with name \"" + name + "\" already exists.";
+            model.addAttribute("message", message);
+            return "create_rule_name";
         }
         Rule rule = new Rule();
         rule.setName(name);
@@ -67,8 +71,16 @@ public class AdminController {
         return "admin_main";
     }
 
+    @GetMapping("/find_rule")
+    public String findByName() {
+        return "find_rule_by_name";
+    }
+
     @PostMapping(value = "/add_condition", params = "action=addCondition")
     public String addCondition(Model model, Rule rule, Condition newCondition) {
+        if (rule == null) {
+            return "redirect:/admin/";
+        }
         Rule cached = TEMP_CONTROLLER_CACHE.get(rule.getName());
         cached.getConditions().add(newCondition);
         model.addAttribute("rule", cached);
@@ -79,7 +91,17 @@ public class AdminController {
     @PostMapping(value = "/add_condition", params = "action=saveRule")
     public String saveNewRule(@ModelAttribute Rule rule, Model model, Condition newCondition) {
         Rule cached = TEMP_CONTROLLER_CACHE.get(rule.getName());
-        cached.getConditions().add(newCondition);
+        if (newCondition.getFeatureName() == null
+                || newCondition.getOperation() == null
+                || newCondition.getValue() == null) {
+            cached.getConditions().add(newCondition);
+        }
+        if (cached.getConditions().isEmpty()) {
+            String message = "At least 1 condition is required for a new Rule";
+            model.addAttribute("message", message);
+            model.addAttribute("rule", cached);
+            return "create_new_rule";
+        }
         cached.getConditions().forEach(condition -> condition.setRule(cached));
         rulesRepository.save(cached);
         model.addAttribute("rule", cached);
@@ -97,6 +119,11 @@ public class AdminController {
     @GetMapping(value = "/rules/details")
     public String getRuleDetailsById(String name, Model model) {
         Rule rule = ruleService.getByName(name);
+        if (rule == null) {
+            String message = "No rules found with name: " + name;
+            model.addAttribute("message", message);
+            return "find_rule_by_name";
+        }
         model.addAttribute("rule", rule);
         return "rule_details";
     }

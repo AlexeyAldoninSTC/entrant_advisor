@@ -27,7 +27,7 @@
 </div>
 <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
     <table th:object="${rule}" class="table-bordered d-md-inline-block">
-        <thead th:text="'New Rule Name: ' + ${rule.name}"></thead>
+        <thead th:text="'New Rule Name: ' + ${rule.name} + '\n'"></thead>
         <thead th:text="'New Rule ID: ' + ${rule.id}"></thead>
         <tbody>
         <tr>

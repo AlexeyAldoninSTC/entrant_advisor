@@ -25,23 +25,30 @@
     </div>
 </div>
 <div class="form-group d-inline-block">
-    <form name="createConditionForm" method="post" th:action="@{/admin/add_condition}"
-          th:object="${rule}">
+    <form id="newConditionForm" name="createConditionForm" method="post" th:action="@{/admin/add_condition}"
+          th:object="${rule}" onsubmit="return formStatus;">
         <h4>New Rule Name</h4>
         <input id="ruleName" type="text" name="name" th:value="${rule.name}" readonly><br>
         <label>
-            <input type="text" name="featureName" th:value="${newCondition.featureName}" required>
+            <input type="text" id="featureName" name="featureName" th:value="${newCondition.featureName}"
+                   placeholder="Feature Name">
         </label>
         <label>
-            <input type="text" name="operation" th:value="${newCondition.operation}" required>
+            <input type="text" id="operation" name="operation" th:value="${newCondition.operation}"
+                   placeholder="Operation">
         </label>
         <label>
-            <input type="number" name="value" th:value="${newCondition.value}" required>
+            <input type="number" id="basicValue" name="value" th:value="${newCondition.value}" placeholder="Base Value">
         </label>
-        <button class="btn-primary" type="submit" name="action" value="addCondition">Add another Condition</button>
+        <button class="btn-primary" type="submit" name="action" value="addCondition"
+                onclick="checkAddConditionValidation()">Add another Condition
+        </button>
         <br>
-        <button class="btn btn-primary" type="submit" name="action" value="saveRule">Save</button>
+        <button class="btn btn-primary" type="submit" name="action" value="saveRule" onclick="checkSaveValidation()">
+            Save
+        </button>
         <br>
+        <div class="text-warning" th:unless="${message == null}" th:utext="${message}"></div>
         <div class="table-bordered">
             <table>
                 <thead>Conditions</thead>
@@ -73,5 +80,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx"
         crossorigin="anonymous"></script>
+<script src="/validation.js">
+</script>
 </body>
 </html>
